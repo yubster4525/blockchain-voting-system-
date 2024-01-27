@@ -1,37 +1,29 @@
-import React from "react";
-import { useState, useEffect } from "react";
-function FatcVoter({ contract, account, provider }) {
+import React, { useState, useEffect } from 'react';
+
+function FatcVoter({ contract }) {
   const [voters, setVoters] = useState([]);
 
   useEffect(() => {
-    const Fatch = async () => {
-      const Voters = await contract.getVoter();
-      console.log(Voters);
-      setVoters(Voters);
+    const fetchVoters = async () => {
+      try {
+        const fetchedVoters = await contract.getVoter();
+        setVoters(fetchedVoters);
+      } catch (error) {
+        console.error('Failed to fetch voters:', error);
+      }
     };
 
-    contract && Fatch();
+    contract && fetchVoters();
   }, [contract]);
 
   return (
     <div>
       <p className="text-dark h3">Voters Information</p>
-      {voters.map((voter) => {
-        return (
-          <div key={Math.random()}>
-            <table>
-              <tbody>
-                <tr className="p-2">
-                  {/* <td>{voter.Id.toString()}</td> */}
-                  <td className="p-2">Voter {voter.name} </td>
-                  <td className="p-2">VoterAddress {voter.voterAddress} </td>
-                  <td className="p-2">Voted To {voter._CandidateAddress} </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        );
-      })}
+      {voters.map((voter, index) => (
+        <div key={index}>
+          <p>Voter {voter.name} - VoterAddress {voter.voterAddress} - Voted To {voter._CandidateAddress}</p>
+        </div>
+      ))}
     </div>
   );
 }

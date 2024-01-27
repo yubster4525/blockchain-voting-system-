@@ -1,44 +1,29 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 
-function FatchCandi({ contract, account, provider }) {
-  const [candidates, setCandidate] = useState([]);
-  console.log("Set Comp");
+function FatchCandi({ contract }) {
+  const [candidates, setCandidates] = useState([]);
 
   useEffect(() => {
-    const Fatch = async () => {
-      const info = await contract.getCandidate();
-      console.log(info);
-      setCandidate(info);
+    const fetchCandidates = async () => {
+      try {
+        const fetchedCandidates = await contract.getCandidate();
+        setCandidates(fetchedCandidates);
+      } catch (error) {
+        console.error('Failed to fetch candidates:', error);
+      }
     };
-    contract && Fatch();
+
+    contract && fetchCandidates();
   }, [contract]);
 
   return (
     <div>
       <p className="text-dark h3">Candidates</p>
-      {candidates.map((candidate) => {
-        return (
-          <div key={Math.random()}>
-            <div>
-              <table>
-                <tbody>
-                  <tr>
-                    <td className="p-2">Candidate Name {candidate.name}</td>
-
-                    <td className="p-2">
-                      {" "}
-                      Candidate Address {candidate._CandidateAddress}
-                    </td>
-
-                    <td className="p-2"> Voted {candidate.vote.toString()}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        );
-      })}
+      {candidates.map((candidate, index) => (
+        <div key={index}>
+          <p>Candidate Name: {candidate.name} - Address: {candidate._CandidateAddress} - Votes: {candidate.vote.toString()}</p>
+        </div>
+      ))}
     </div>
   );
 }

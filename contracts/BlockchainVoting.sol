@@ -1,110 +1,120 @@
-//SPDX-License-Identifier:MIT
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.18;
 
-error _CandidateAlreadyExit();
-error _AlreadyVoted();
-error _CandidateNotVoteItSlef();
+error CandidateAlreadyExists();
+error AlreadyVoted();
+error CandidateCannotVoteThemselves();
 
 contract BlockchainVoting {
-    address Manger;
-    uint256 TotalCandidates;
-    uint256 TotalVoters;
+    address manager;
+    uint256 totalCandidates;
+    uint256 totalVoters;
+
+    // Event that is emitted whenever a new vote is cast
+    event VoteCast(uint256 candidateId, address voter);
 
     constructor() {
-        Manger = msg.sender;
+        manager = msg.sender;
     }
 
-    struct voter {
-        uint256 Id;
+    struct Voter {
+        uint256 id;
         string name;
         address voterAddress;
-        address _CandidateAddress;
+        address candidateAddress;
     }
 
     struct Candidate {
         string name;
-        address _CandidateAddress;
-        uint vote;
+        address candidateAddress;
+        uint256 voteCount;
     }
 
-    struct propsal {
+    struct Proposal {
         string name;
-        address _CandidateAddress;
+        address candidateAddress;
     }
 
-    voter[] voters;
-    Candidate[] Candidates;
-    propsal[] propsals;
+    Voter[] public voters;
+    Candidate[] public candidates;
+    Proposal[] public proposals;
 
-    function SetCandidate(
-        address _Address,
+    function setCandidates(
+        address _address,
         string memory _name
-    ) external OnlyManger {
-        for (uint256 i = 0; i < Candidates.length; i++) {
-            if (Candidates[i]._CandidateAddress == _Address) {
-                revert _CandidateAlreadyExit();
-            } else {}
+    ) external onlyManager {
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i].candidateAddress == _address) {
+                revert CandidateAlreadyExists();
+            }
         }
-        Candidates.push(Candidate(_name, _Address, 0));
-        TotalCandidates++;
+        candidates.push(Candidate(_name, _address, 0));
+        totalCandidates++;
     }
 
-    function SetVote(
-        uint256 _Id,
+    function setVote(
+        uint256 _id,
         string memory _name,
         address _voterAddress,
-        address _CandidateAddress
+        address _candidateAddress
     ) external {
         require(
-            Candidates.length >= 2,
-            "Candidate  greater then 2 or Must Be 2 "
+            candidates.length >= 2,
+            "There must be at least 2 candidates to vote."
         );
+
         for (uint256 i = 0; i < voters.length; i++) {
-            if (
-                voters[i].Id == _Id && voters[i].voterAddress == _voterAddress
-            ) {
-                revert _AlreadyVoted();
+            if (voters[i].id == _id && voters[i].voterAddress == _voterAddress) {
+                revert AlreadyVoted();
             }
         }
 
-        for (uint256 i = 0; i < Candidates.length; i++) {
-            if (Candidates[i]._CandidateAddress == _voterAddress) {
-                revert _CandidateNotVoteItSlef();
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i].candidateAddress == _voterAddress) {
+                revert CandidateCannotVoteThemselves();
             }
         }
 
-        for (uint i; i < Candidates.length; i++) {
-            if (Candidates[i]._CandidateAddress == _CandidateAddress) {
-                Candidates[i].vote++;
-                voters.push(
-                    voter(_Id, _name, _voterAddress, _CandidateAddress)
-                );
-                TotalVoters++;
+        for (uint256 i = 0; i < candidates.length; i++) {
+            if (candidates[i].candidateAddress == _candidateAddress) {
+                candidates[i].voteCount++;
+                voters.push(Voter(_id, _name, _voterAddress, _candidateAddress));
+                emit VoteCast(i, _voterAddress); // Emit the event here
+                totalVoters++;
+                return;
             }
         }
     }
 
-    function RequestForNextVoting(
+    function requestForNextVoting(
         address _requestAddress,
         string memory _name
     ) external {
-        propsals.push(propsal(_name, _requestAddress));
+        proposals.push(Proposal(_name, _requestAddress));
     }
 
-    function getRequestPropsal() external view returns (propsal[] memory) {
-        return propsals;
+    function getProposals() external view returns (Proposal[] memory) {
+        return proposals;
     }
 
-    function getCandidate() external view returns (Candidate[] memory) {
-        return Candidates;
+    function getCandidates() external view returns (Candidate[] memory) {
+        return candidates;
     }
 
-    function getVoter() external view returns (voter[] memory) {
+    function getVoters() external view returns (Voter[] memory) {
         return voters;
     }
 
-    modifier OnlyManger() {
-        require(msg.sender == Manger);
+    // Utility function to get the total votes for all candidates
+    function getTotalVotesForCandidates() external view returns (uint256[] memory voteCounts) {
+        voteCounts = new uint256[](candidates.length);
+        for (uint256 i = 0; i < candidates.length; i++) {
+            voteCounts[i] = candidates[i].voteCount;
+        }
+    }
+
+    modifier onlyManager() {
+        require(msg.sender == manager, "This function is restricted to the contract's manager");
         _;
     }
 }

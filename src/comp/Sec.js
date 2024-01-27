@@ -1,21 +1,29 @@
-import React from "react";
-import { useState } from "react";
-import * as ReactBootStrap from "react-bootstrap";
+import React, { useState } from 'react';
+import * as ReactBootStrap from 'react-bootstrap';
 
-function Sec({ contract, account, provider }) {
+function Sec({ contract, account }) {
+  const [address, setAddress] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+
   const SetCandidate = async (e) => {
     e.preventDefault();
-    const Address = document.getElementById("address").value;
-    const Name = document.getElementById("name").value;
-    if (Address && Name) {
-      console.log(Address);
-      await contract.SetCandidate(Address, Name);
-      console.log("Set!");
-      window.location.reload();
-      setLoading(true);
+    if (address && name) {
+      try {
+        setLoading(true);
+        const transaction = await contract.SetCandidate(address, name);
+        await transaction.wait();
+        alert('Candidate Set Successfully!');
+      } catch (error) {
+        console.error('Error setting candidate:', error);
+        alert('Failed to set candidate.');
+      } finally {
+        setLoading(false);
+        setAddress('');
+        setName('');
+      }
     } else {
-      alert("please Fill input Felid");
+      alert('Please fill in both address and name fields.');
     }
   };
 
@@ -27,37 +35,29 @@ function Sec({ contract, account, provider }) {
           <input
             type="text"
             placeholder="Address"
-            id="address"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
             disabled={!account}
-            class="form-control"
-          ></input>
+            className="form-control"
+          />
         </div>
 
         <div className="form-group p-2">
           <label>Name</label>
           <input
             type="text"
-            placeholder="_name"
-            id="name"
+            placeholder="Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             disabled={!account}
-            class="form-control"
-          ></input>
+            className="form-control"
+          />
         </div>
-        <button
-          type="submit"
-          disabled={!account}
-          className="btn btn-dark  mx-2 mt-2 "
-        >
-          {!loading ? (
-            "Set Candidate"
+        <button type="submit" disabled={!account || loading} className="btn btn-dark mx-2 mt-2">
+          {loading ? (
+            <ReactBootStrap.Spinner as="span" animation="grow" size="sm" role="status" aria-hidden="true" />
           ) : (
-            <ReactBootStrap.Spinner
-              as="span"
-              animation="grow"
-              size="sm"
-              role="status"
-              aria-hidden="true"
-            />
+            'Set Candidate'
           )}
         </button>
       </form>
