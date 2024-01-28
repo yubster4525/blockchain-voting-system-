@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as ReactBootStrap from 'react-bootstrap';
 
-function Propsal({ contract, account }) {
+function Proposal({ contract, account }) {
   const [showProposal, setShowProposal] = useState(false);
   const [candidateAccount, setCandidateAccount] = useState('');
   const [candidateName, setCandidateName] = useState('');
@@ -80,13 +80,13 @@ function Propsal({ contract, account }) {
       <button onClick={fetchProposals} className="btn btn-success">
         Fetch Next Candidates
       </button>
-      {proposals.map((candidate) => (
-        <div key={candidate.name}>
-          <p>{candidate.name} - {candidate._CandidateAddress}</p>
+      {proposals.map((candidate, index) => (
+        <div key={index}>
+          <p>{candidate.name} - {candidate.candidateAddress}</p>
         </div>
       ))}
     </div>
   );
 }
 
-export default Propsal;
+export default Proposal;
